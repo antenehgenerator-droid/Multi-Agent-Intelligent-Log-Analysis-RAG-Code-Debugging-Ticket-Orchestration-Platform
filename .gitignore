@@ -9,3 +9,20 @@ target/
 *.class
 .DS_Store
 .checkstyle
+
+# Build directories
+*.jar
+*.war
+
+# IDE files
+.vscode/
+*.sublime-project
+
+# Environment and sensitive data
+.env
+*.pem
+*.key
+*.log
+
+# Docker data (persistent volumes)
+pgdata/
