@@ -1,0 +1,9 @@
+spring:
+  flyway:
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-migration-naming: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/logintel
+    username: user
+    password: password
