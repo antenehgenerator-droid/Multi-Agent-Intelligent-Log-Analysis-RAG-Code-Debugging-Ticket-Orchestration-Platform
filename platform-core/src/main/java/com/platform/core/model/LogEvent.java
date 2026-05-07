@@ -15,5 +15,4 @@ public record LogEvent(
     Map<String, Object> metadata,
     String fingerprint,
     Instant occurredAt,
-    Instant ingestedAt
-) {}
+    Instant ingestedAt) {}

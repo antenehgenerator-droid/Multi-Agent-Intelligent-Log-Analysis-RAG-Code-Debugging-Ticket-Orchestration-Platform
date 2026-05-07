@@ -13,11 +13,12 @@ public record Ticket(
     String service,
     List<String> suspectedFiles,
     String fixSuggestion,
-    String externalId,  // Jira or GitHub Issue key
+    String externalId, // Jira or GitHub Issue key
     Status status,
-    Instant createdAt
-) {
-    public enum Status {
-        PENDING, PUBLISHED, EXTERNAL_FAILED
-    }
+    Instant createdAt) {
+  public enum Status {
+    PENDING,
+    PUBLISHED,
+    EXTERNAL_FAILED
+  }
 }

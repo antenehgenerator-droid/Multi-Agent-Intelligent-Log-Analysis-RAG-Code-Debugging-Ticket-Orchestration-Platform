@@ -10,13 +10,14 @@ public record Incident(
     String rootCause,
     String resolution,
     Status status,
-    String severity,    // e.g., "P0", "P1"
+    String severity, // e.g., "P0", "P1"
     String service,
     Instant firstSeenAt,
     Instant lastSeenAt,
-    Instant createdAt
-) {
-    public enum Status {
-        OPEN, RESOLVED, DUPLICATE
-    }
+    Instant createdAt) {
+  public enum Status {
+    OPEN,
+    RESOLVED,
+    DUPLICATE
+  }
 }

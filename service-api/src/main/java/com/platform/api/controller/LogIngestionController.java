@@ -7,18 +7,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/logs")
 public class LogIngestionController {
 
-    private final IngestionService ingestionService;
+  private final IngestionService ingestionService;
 
-    public LogIngestionController(IngestionService ingestionService) {
-        this.ingestionService = ingestionService;
-    }
+  public LogIngestionController(IngestionService ingestionService) {
+    this.ingestionService = ingestionService;
+  }
 
-    @PostMapping(":ingest")
-    public ResponseEntity<Void> ingest(@Valid @RequestBody LogIngestionRequest request) {
-        ingestionService.ingest(request.events());
-        return ResponseEntity.accepted().build();
-    }
+  @PostMapping("/api/v1/logs:ingest")
+  public ResponseEntity<Void> ingest(@Valid @RequestBody LogIngestionRequest request) {
+    ingestionService.ingest(request.events());
+    return ResponseEntity.accepted().build();
+  }
 }
