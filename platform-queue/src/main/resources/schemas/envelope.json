@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "schema",
+    "messageId",
+    "occurredAt",
+    "producedAt",
+    "traceId",
+    "tenantId",
+    "payload"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "messageId": {
+      "description": "UUID string emitted by Kafka JSON serializers",
+      "type": "string",
+      "minLength": 1
+    },
+    "occurredAt": {
+      "description": "Domain event instant (serialized as RFC-3339 text or numeric by Jackson)",
+      "type": ["string", "number", "integer"]
+    },
+    "producedAt": {
+      "description": "Broker/producer enqueue instant",
+      "type": ["string", "number", "integer"]
+    },
+    "traceId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "payload": true
+  }
+}

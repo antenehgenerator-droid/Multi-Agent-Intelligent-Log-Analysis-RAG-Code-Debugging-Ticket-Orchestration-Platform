@@ -1,0 +1,7 @@
+# Java Exceptions
+JAVA_EX %{JAVACLASS:exception_class}: %{GREEDYDATA:exception_msg}
+# Standard Spring Boot / Java Log
+JAVA_LOG %{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{NOTSPACE:thread} %{NOTSPACE:logger} : %{GREEDYDATA:message}
+# Syslog
+SYSLOG_BASE <%{POSINT:syslog_pri}>%{MONTH:month} +%{MONTHDAY:day} %{TIME:time} %{HOSTNAME:host} %{NOTSPACE:tag}: %{GREEDYDATA:message}
+
