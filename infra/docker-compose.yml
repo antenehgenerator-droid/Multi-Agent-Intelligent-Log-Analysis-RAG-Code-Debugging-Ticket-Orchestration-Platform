@@ -23,13 +23,14 @@ services:
     ports:
       - "9092:9092"
     environment:
+      # cp-kafka uses KRaft here; it requires CLUSTER_ID (not KAFKA_CLUSTER_ID)
+      CLUSTER_ID: mkIqH636T1aR2H8L54r48A
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CLUSTER_ID: mkIqH636T1aR2H8L54r48A
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   kafka-ui:
@@ -45,7 +46,8 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      # Host has `prometheus.yml/` as a directory; mount dir-to-dir
+      - ./prometheus.yml:/etc/prometheus
 
   grafana:
     image: grafana/grafana:latest

@@ -1,6 +1,11 @@
 server:
   port: 8050
 spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      properties:
+        max.block.ms: 1500
   application:
     name: service-api
   threads:
@@ -42,6 +47,13 @@ management:
   endpoint:
     health:
       show-details: always
+
+com:
+  platform:
+    ingestion:
+      kafka:
+        dual-write: true
+      default-tenant-id: default
 
 springdoc:
   api-docs:
