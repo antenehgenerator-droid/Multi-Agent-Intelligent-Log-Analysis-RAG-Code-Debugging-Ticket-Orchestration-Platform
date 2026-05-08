@@ -36,8 +36,7 @@ class PreprocessingConsumerIT {
   @Container
   static final KafkaContainer kafka =
       new KafkaContainer(
-          DockerImageName.parse("apache/kafka-native:latest")
-              .asCompatibleSubstituteFor("apache/kafka"));
+          DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
 
   @DynamicPropertySource
   static void props(DynamicPropertyRegistry reg) {
@@ -47,7 +46,7 @@ class PreprocessingConsumerIT {
   @Autowired private KafkaTemplate<String, KafkaEnvelope<?>> envelopeKafkaTemplate;
 
   @Test
-  void consumesRawAndPublishesNormalized() throws Exception {
+  void consumesRawAndPublishesPreprocessed() throws Exception {
     Instant now = Instant.now();
     LogEntry entry =
         new LogEntry(
@@ -64,21 +63,21 @@ class PreprocessingConsumerIT {
     consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 
     try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
-      consumer.subscribe(List.of(KafkaTopicsConfig.NORMALIZED_LOGS));
+      consumer.subscribe(List.of(KafkaTopicsConfig.PREPROCESSED_LOGS));
 
       envelopeKafkaTemplate.send(KafkaTopicsConfig.RAW_LOGS, "service-a", envelope).get(30_000, java.util.concurrent.TimeUnit.MILLISECONDS);
 
       ConsumerRecord<String, String> record =
-          KafkaTestUtils.getSingleRecord(consumer, KafkaTopicsConfig.NORMALIZED_LOGS, Duration.ofSeconds(45));
+          KafkaTestUtils.getSingleRecord(consumer, KafkaTopicsConfig.PREPROCESSED_LOGS, Duration.ofSeconds(45));
 
       assertThat(record.key()).isNotBlank();
 
       ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
       JsonNode root = mapper.readTree(record.value());
-      assertThat(root.get("schema").asText()).isEqualTo("logs.normalized.v1");
-      assertThat(root.get("payload").get("service").asText()).isEqualTo("service-a");
+      assertThat(root.get("schema").asText()).isEqualTo("logs.preprocessed.v1");
+      assertThat(root.get("payload").get("raw").get("service").asText()).isEqualTo("service-a");
       assertThat(root.get("payload").get("fingerprint").asText()).isNotBlank();
-      assertThat(root.get("payload").get("message").asText()).contains("<UUID>");
+      assertThat(root.get("payload").get("template").asText()).contains("<UUID>");
     }
   }
 }
