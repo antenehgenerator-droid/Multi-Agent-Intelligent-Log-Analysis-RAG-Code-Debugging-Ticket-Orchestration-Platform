@@ -1,0 +1,15 @@
+{
+  "title": "Log Pipeline Health",
+  "panels": [
+    {
+      "title": "Throughput (Logs/sec)",
+      "targets": [{ "expr": "rate(ingestion_published_total[1m])" }]
+    },
+    {
+      "title": "Pipeline Terminal State",
+      "type": "piechart",
+      "targets": [{ "expr": "sum by (state) (pipeline_completed_total)" }]
+    }
+  ]
+}
+

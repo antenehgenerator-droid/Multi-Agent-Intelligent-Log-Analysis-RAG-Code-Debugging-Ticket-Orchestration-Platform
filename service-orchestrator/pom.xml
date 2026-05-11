@@ -22,6 +22,11 @@
             <artifactId>platform-core</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.yourproject</groupId>
+            <artifactId>platform-persistence</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

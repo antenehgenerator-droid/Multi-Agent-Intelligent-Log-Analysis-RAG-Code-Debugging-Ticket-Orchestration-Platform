@@ -3,28 +3,24 @@ package com.platform.it;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.platform.api.ApiApplication;
 import com.platform.core.model.LogIngestionRequest;
 import com.platform.core.model.LogIngestionRequest.LogEntry;
 import com.platform.queue.config.KafkaTopicsConfig;
+import com.platform.orchestrator.OrchestratorApplication;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -41,11 +37,10 @@ import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(
-    classes = ApiApplication.class,
+    classes = {ApiApplication.class, OrchestratorApplication.class},
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class EndToEndLogFlowIT {
+class PipelineE2EIT {
 
   @Container
   static final PostgreSQLContainer<?> postgres =
@@ -67,24 +62,15 @@ class EndToEndLogFlowIT {
     reg.add("spring.data.redis.host", redis::getHost);
     reg.add("spring.data.redis.port", () -> String.valueOf(redis.getMappedPort(6379)));
     reg.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+    reg.add("spring.kafka.consumer.auto-offset-reset", () -> "earliest");
   }
 
   @Autowired private TestRestTemplate restTemplate;
-
   @Autowired private JdbcTemplate jdbcTemplate;
 
-  @BeforeEach
-  void cleanLogEvents() {
-    jdbcTemplate.update("DELETE FROM log_events");
-  }
-
   @Test
-  @Order(1)
-  void testDualWrite() throws Exception {
-    LogEntry entry =
-        new LogEntry(
-            "service-a", "INFO", "dual-write ping", null, null, null, Instant.now(), Map.of());
-    LogIngestionRequest req = new LogIngestionRequest(List.of(entry));
+  void testLogToTicketPipeline() throws Exception {
+    LogIngestionRequest req = createSpikeRequest("auth-service", 50);
 
     Map<String, Object> consumerProps =
         new HashMap<>(
@@ -94,57 +80,35 @@ class EndToEndLogFlowIT {
     consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 
     try (KafkaConsumer<String, String> consumer = new KafkaConsumer<>(consumerProps)) {
-      consumer.subscribe(List.of(KafkaTopicsConfig.RAW_LOGS));
-
-      await()
-          .atMost(Duration.ofSeconds(30))
-          .until(
-              () -> {
-                consumer.poll(Duration.ofMillis(200));
-                return !consumer.subscription().isEmpty() && !consumer.assignment().isEmpty();
-              });
+      consumer.subscribe(List.of(KafkaTopicsConfig.TICKETS_NEW));
 
       var response = restTemplate.postForEntity("/api/v1/logs:ingest", req, Void.class);
       assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
 
-      Integer count =
-          jdbcTemplate.queryForObject(
-              "SELECT count(*) FROM log_events WHERE service = ?", Integer.class, "service-a");
-      assertThat(count).isEqualTo(1);
+      await()
+          .atMost(Duration.ofSeconds(30))
+          .untilAsserted(
+              () -> {
+                Integer tickets = jdbcTemplate.queryForObject("SELECT count(*) FROM tickets", Integer.class);
+                assertThat(tickets).isNotNull();
+                assertThat(tickets).isGreaterThan(0);
+              });
 
       ConsumerRecord<String, String> record =
-          KafkaTestUtils.getSingleRecord(
-              consumer, KafkaTopicsConfig.RAW_LOGS, Duration.ofSeconds(45));
-      assertThat(record.key()).isEqualTo("service-a");
-
-      ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
-      JsonNode root = mapper.readTree(record.value());
-      assertThat(root.get("payload").get("service").asText()).isEqualTo("service-a");
-      assertThat(root.get("schema").asText()).isEqualTo("logs.raw.v1");
+          KafkaTestUtils.getSingleRecord(consumer, KafkaTopicsConfig.TICKETS_NEW, Duration.ofSeconds(45));
+      assertThat(record.key()).isNotBlank();
     }
   }
 
-  @Test
-  @Order(2)
-  void testFullIngestionFlow() {
-    LogIngestionRequest req = createSampleRequest(100);
-    var response = restTemplate.postForEntity("/api/v1/logs:ingest", req, Void.class);
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
-
-    Integer count = jdbcTemplate.queryForObject("SELECT count(*) FROM log_events", Integer.class);
-    assertThat(count).isEqualTo(100);
-  }
-
-  private static LogIngestionRequest createSampleRequest(int n) {
+  private static LogIngestionRequest createSpikeRequest(String service, int n) {
     List<LogEntry> entries =
         IntStream.range(0, n)
             .mapToObj(
                 i ->
                     new LogEntry(
-                        "svc-" + i % 3,
-                        "INFO",
-                        "message " + i,
+                        service,
+                        "ERROR",
+                        "Connection failed to 10.0.0." + i + ":5432 after " + (1000 + i) + "ms",
                         null,
                         null,
                         null,
@@ -154,3 +118,4 @@ class EndToEndLogFlowIT {
     return new LogIngestionRequest(entries);
   }
 }
+

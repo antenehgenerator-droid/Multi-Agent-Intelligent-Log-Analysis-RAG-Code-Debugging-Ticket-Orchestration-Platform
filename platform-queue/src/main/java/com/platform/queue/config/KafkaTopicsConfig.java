@@ -18,6 +18,7 @@ public final class KafkaTopicsConfig {
   public static final String ALERTS = "alerts.notifications";
   public static final String INCIDENTS_EVENTS = "incidents.events";
   public static final String TICKETS_EVENTS = "tickets.events";
+  public static final String TICKETS_NEW = "tickets.new";
   public static final String EMBEDDING_JOBS = "embedding.jobs";
   public static final String RAG_QUERIES = "rag.queries";
 
@@ -30,6 +31,7 @@ public final class KafkaTopicsConfig {
         ALERTS,
         INCIDENTS_EVENTS,
         TICKETS_EVENTS,
+        TICKETS_NEW,
         EMBEDDING_JOBS,
         RAG_QUERIES);
   }
@@ -62,6 +64,11 @@ public final class KafkaTopicsConfig {
   @Bean
   public NewTopic ticketsEvents() {
     return TopicBuilder.name(TICKETS_EVENTS).partitions(3).replicas(1).build();
+  }
+
+  @Bean
+  public NewTopic ticketsNew() {
+    return TopicBuilder.name(TICKETS_NEW).partitions(3).replicas(1).build();
   }
 
   @Bean
