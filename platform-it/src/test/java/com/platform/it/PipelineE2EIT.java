@@ -6,15 +6,16 @@ import static org.awaitility.Awaitility.await;
 import com.platform.api.ApiApplication;
 import com.platform.core.model.LogIngestionRequest;
 import com.platform.core.model.LogIngestionRequest.LogEntry;
-import com.platform.queue.config.KafkaTopicsConfig;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.platform.orchestrator.OrchestratorApplication;
+import com.platform.queue.config.KafkaTopicsConfig;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -68,6 +69,8 @@ class PipelineE2EIT {
   @Autowired private TestRestTemplate restTemplate;
   @Autowired private JdbcTemplate jdbcTemplate;
 
+  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+
   @Test
   void testLogToTicketPipeline() throws Exception {
     LogIngestionRequest req = createSpikeRequest("auth-service", 50);
@@ -94,10 +97,55 @@ class PipelineE2EIT {
                 assertThat(tickets).isGreaterThan(0);
               });
 
+      Integer orchestratorRuns =
+          jdbcTemplate.queryForObject(
+              "SELECT count(*) FROM agent_executions WHERE agent_name = 'ORCHESTRATOR'",
+              Integer.class);
+      assertThat(orchestratorRuns).isNotNull();
+      assertThat(orchestratorRuns).isGreaterThan(0);
+
+      Integer ticketedRuns =
+          jdbcTemplate.queryForObject(
+              "SELECT count(*) FROM agent_executions WHERE agent_name = 'ORCHESTRATOR' AND status = 'TICKETED'",
+              Integer.class);
+      assertThat(ticketedRuns).isNotNull();
+      assertThat(ticketedRuns).isGreaterThan(0);
+
       ConsumerRecord<String, String> record =
           KafkaTestUtils.getSingleRecord(consumer, KafkaTopicsConfig.TICKETS_NEW, Duration.ofSeconds(45));
       assertThat(record.key()).isNotBlank();
+      JsonNode envelope = objectMapper.readTree(record.value());
+      assertThat(envelope.get("payload").get("incidentId").asText()).isEqualTo(record.key());
     }
+  }
+
+  /**
+   * Many similar ERROR lines should fingerprint together; cold-start thresholds yield a small
+   * number of stub tickets (expect roughly single-digit to low tens). For live Grafana checks,
+   * scrape the orchestrator and watch {@code pipeline_completed_total{terminal_state="TICKETED"}}
+   * after sending ~100 logs.
+   */
+  @Test
+  void spikeTrafficProducesBoundedStubTicketCount() {
+    Integer before =
+        jdbcTemplate.queryForObject("SELECT count(*) FROM tickets", Integer.class);
+    assertThat(before).isNotNull();
+
+    LogIngestionRequest req = createSpikeRequest("auth-service", 100);
+
+    var response = restTemplate.postForEntity("/api/v1/logs:ingest", req, Void.class);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.ACCEPTED);
+
+    await()
+        .atMost(Duration.ofSeconds(45))
+        .pollInterval(Duration.ofMillis(500))
+        .untilAsserted(
+            () -> {
+              Integer tickets = jdbcTemplate.queryForObject("SELECT count(*) FROM tickets", Integer.class);
+              assertThat(tickets).isNotNull();
+              int delta = tickets - before;
+              assertThat(delta).isBetween(1, 25);
+            });
   }
 
   private static LogIngestionRequest createSpikeRequest(String service, int n) {

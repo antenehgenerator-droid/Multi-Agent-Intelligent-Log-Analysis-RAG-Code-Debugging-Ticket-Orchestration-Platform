@@ -24,9 +24,11 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @SpringBootTest(classes = OrchestratorApplication.class)
@@ -34,13 +36,25 @@ import org.testcontainers.utility.DockerImageName;
 class PreprocessingConsumerIT {
 
   @Container
+  static final PostgreSQLContainer<?> postgres =
+      new PostgreSQLContainer<>("pgvector/pgvector:pg16");
+
+  @Container
+  static final GenericContainer<?> redis =
+      new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
+
+  @Container
   static final KafkaContainer kafka =
-      new KafkaContainer(
-          DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
+      new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
 
   @DynamicPropertySource
   static void props(DynamicPropertyRegistry reg) {
     reg.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+    reg.add("spring.datasource.url", postgres::getJdbcUrl);
+    reg.add("spring.datasource.username", postgres::getUsername);
+    reg.add("spring.datasource.password", postgres::getPassword);
+    reg.add("spring.data.redis.host", redis::getHost);
+    reg.add("spring.data.redis.port", () -> String.valueOf(redis.getMappedPort(6379)));
   }
 
   @Autowired private KafkaTemplate<String, KafkaEnvelope<?>> envelopeKafkaTemplate;
@@ -81,4 +95,3 @@ class PreprocessingConsumerIT {
     }
   }
 }
-

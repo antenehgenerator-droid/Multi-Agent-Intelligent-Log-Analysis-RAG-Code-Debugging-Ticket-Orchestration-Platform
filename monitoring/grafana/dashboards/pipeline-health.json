@@ -8,7 +8,7 @@
     {
       "title": "Pipeline Terminal State",
       "type": "piechart",
-      "targets": [{ "expr": "sum by (state) (pipeline_completed_total)" }]
+      "targets": [{ "expr": "sum by (terminal_state) (pipeline_completed_total)" }]
     }
   ]
 }
