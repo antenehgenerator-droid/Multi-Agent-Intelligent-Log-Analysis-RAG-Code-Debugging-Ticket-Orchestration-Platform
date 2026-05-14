@@ -1,0 +1,64 @@
+{
+  "uid": "pipeline-health-v1",
+  "title": "Pipeline health v1",
+  "tags": ["pipeline", "platform"],
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Ingest + preprocess throughput",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(ingestion_published_total[1m]))",
+          "legendFormat": "ingestion published / s"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(worker_preprocessing_processed_total[1m]))",
+          "legendFormat": "preprocessed / s"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Orchestrator terminal state (current)",
+      "type": "piechart",
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "options": { "legend": { "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (terminal_state) (pipeline_completed_total)",
+          "legendFormat": "{{terminal_state}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Stub tickets (Kafka topic rate proxy)",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(rate(pipeline_completed_total{terminal_state=\"TICKETED\"}[1m]))",
+          "legendFormat": "ticketed completions / s"
+        }
+      ]
+    }
+  ]
+}
