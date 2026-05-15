@@ -7,6 +7,7 @@ import com.platform.queue.config.KafkaTopicsConfig;
 import com.platform.queue.model.KafkaEnvelope;
 import com.platform.queue.producer.EnvelopeProducer;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -37,6 +38,7 @@ public class IngestionService {
   private final LogNormalizer normalizer;
   private final ObjectProvider<EnvelopeProducer> envelopeProducer;
   private final MeterRegistry meterRegistry;
+  private final Timer ingestionLatencyTimer;
   private final boolean kafkaDualWrite;
   private final String defaultTenantId;
 
@@ -54,12 +56,21 @@ public class IngestionService {
     this.normalizer = normalizer;
     this.envelopeProducer = envelopeProducer;
     this.meterRegistry = meterRegistry;
+    this.ingestionLatencyTimer =
+        Timer.builder("ingestion.latency")
+            .description("Latency of ingest batch: JDBC batch + optional Kafka dual-write")
+            .publishPercentiles(0.5, 0.95, 0.99)
+            .register(meterRegistry);
     this.kafkaDualWrite = kafkaDualWrite;
     this.defaultTenantId = defaultTenantId;
   }
 
   @Transactional
   public void ingest(List<LogEntry> entries) {
+    ingestionLatencyTimer.record(() -> ingestInternal(entries));
+  }
+
+  private void ingestInternal(List<LogEntry> entries) {
     List<Map<String, Object>> batch =
         entries.stream()
             .<Map<String, Object>>map(

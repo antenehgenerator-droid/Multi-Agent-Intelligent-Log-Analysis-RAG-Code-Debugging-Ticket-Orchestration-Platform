@@ -23,6 +23,7 @@
         <module>platform-llm</module>
         <module>platform-it</module>
         <module>platform-queue</module>
+        <module>platform-load-tests</module>
     </modules>
 
     <dependencyManagement>

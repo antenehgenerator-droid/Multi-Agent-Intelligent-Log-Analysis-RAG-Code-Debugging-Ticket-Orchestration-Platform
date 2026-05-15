@@ -16,4 +16,9 @@ public class GlobalExceptionHandler {
         .header(HttpHeaders.RETRY_AFTER, "5")
         .body("Ingestion buffer full or Kafka unavailable. Please retry in 5 seconds.");
   }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<String> handleBadRequest(IllegalArgumentException ex) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+  }
 }

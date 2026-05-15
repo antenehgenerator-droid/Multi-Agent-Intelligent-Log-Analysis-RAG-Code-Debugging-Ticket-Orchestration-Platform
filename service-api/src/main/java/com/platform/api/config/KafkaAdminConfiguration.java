@@ -7,11 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(
-    prefix = "com.platform.ingestion.kafka",
-    name = "dual-write",
-    havingValue = "true",
-    matchIfMissing = true)
+@ConditionalOnProperty(name = "spring.kafka.bootstrap-servers")
 public class KafkaAdminConfiguration {
 
   @Bean(destroyMethod = "close")

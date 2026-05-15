@@ -1,6 +1,7 @@
 package com.platform.queue.config;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,18 +23,20 @@ public final class KafkaTopicsConfig {
   public static final String EMBEDDING_JOBS = "embedding.jobs";
   public static final String RAG_QUERIES = "rag.queries";
 
-  /** All platform topic names (for observability / admin tooling). */
+  /** All platform topic names including DLQs (for observability / admin tooling). */
   public static List<String> allTopicNames() {
-    return List.of(
-        RAW_LOGS,
-        PREPROCESSED_LOGS,
-        NORMALIZED_LOGS,
-        ALERTS,
-        INCIDENTS_EVENTS,
-        TICKETS_EVENTS,
-        TICKETS_NEW,
-        EMBEDDING_JOBS,
-        RAG_QUERIES);
+    List<String> primary =
+        List.of(
+            RAW_LOGS,
+            PREPROCESSED_LOGS,
+            NORMALIZED_LOGS,
+            ALERTS,
+            INCIDENTS_EVENTS,
+            TICKETS_EVENTS,
+            TICKETS_NEW,
+            EMBEDDING_JOBS,
+            RAG_QUERIES);
+    return Stream.concat(primary.stream(), DlqTopics.allDlqTopicNames().stream()).toList();
   }
 
   @Bean
@@ -79,5 +82,20 @@ public final class KafkaTopicsConfig {
   @Bean
   public NewTopic ragQueries() {
     return TopicBuilder.name(RAG_QUERIES).partitions(3).replicas(1).build();
+  }
+
+  @Bean
+  public NewTopic rawLogsDlq() {
+    return TopicBuilder.name(DlqTopics.RAW_LOGS_DLQ).partitions(3).replicas(1).build();
+  }
+
+  @Bean
+  public NewTopic preprocessedLogsDlq() {
+    return TopicBuilder.name(DlqTopics.PREPROCESSED_LOGS_DLQ).partitions(3).replicas(1).build();
+  }
+
+  @Bean
+  public NewTopic ticketsNewDlq() {
+    return TopicBuilder.name(DlqTopics.TICKETS_NEW_DLQ).partitions(3).replicas(1).build();
   }
 }

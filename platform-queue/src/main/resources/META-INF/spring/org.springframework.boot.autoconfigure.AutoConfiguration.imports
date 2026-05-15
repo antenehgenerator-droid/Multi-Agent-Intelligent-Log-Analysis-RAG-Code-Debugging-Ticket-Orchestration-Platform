@@ -1,3 +1,2 @@
 com.platform.queue.config.KafkaEnvelopeProducerAutoConfiguration
 com.platform.queue.config.QueueKafkaAutoConfiguration
-com.platform.queue.config.KafkaTopicsConfig

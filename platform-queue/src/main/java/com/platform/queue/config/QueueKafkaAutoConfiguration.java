@@ -11,5 +11,5 @@ import org.springframework.kafka.core.KafkaTemplate;
 @AutoConfiguration(
     after = {KafkaAutoConfiguration.class, KafkaEnvelopeProducerAutoConfiguration.class})
 @ConditionalOnClass(KafkaTemplate.class)
-@Import({EnvelopeProducer.class, JsonSchemaValidator.class, KafkaErrorConfig.class})
+@Import({EnvelopeProducer.class, JsonSchemaValidator.class})
 public class QueueKafkaAutoConfiguration {}
