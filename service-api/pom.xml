@@ -27,6 +27,11 @@
             <artifactId>platform-queue</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.yourproject</groupId>
+            <artifactId>platform-llm</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

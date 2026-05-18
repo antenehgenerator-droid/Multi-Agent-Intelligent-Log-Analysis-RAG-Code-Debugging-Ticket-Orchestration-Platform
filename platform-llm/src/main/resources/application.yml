@@ -5,3 +5,10 @@ llm:
     model-name: gemma4:e2b
   budget:
     daily-usd-limit: 50.00
+    degradation-thresholds: [0.70, 0.90, 1.00]
+  task-routing:
+    mappings:
+      TINY: "gemma2:2b"
+      SMALL: "gemma2:2b"
+      MEDIUM: "gemma2:9b"
+      LARGE: "gemma2:27b"
