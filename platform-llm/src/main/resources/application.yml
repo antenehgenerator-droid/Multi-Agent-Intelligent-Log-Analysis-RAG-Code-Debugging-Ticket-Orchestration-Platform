@@ -1,0 +1,7 @@
+llm:
+  provider: ollama
+  ollama:
+    base-url: http://localhost:11434
+    model-name: gemma4:e2b
+  budget:
+    daily-usd-limit: 50.00
