@@ -9,5 +9,5 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @ComponentScan(basePackages = "com.platform.llm")
 @EnableConfigurationProperties(ModelRouter.class)
-@Import(LLmConfig.class)
+@Import({LLmConfig.class, EmbeddingConfig.class})
 public class LlmAutoConfiguration {}

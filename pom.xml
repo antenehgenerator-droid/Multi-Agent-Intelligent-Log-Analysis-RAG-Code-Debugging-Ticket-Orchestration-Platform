@@ -24,6 +24,7 @@
         <module>platform-it</module>
         <module>platform-queue</module>
         <module>platform-load-tests</module>
+        <module>service-embedding-worker</module>
     </modules>
 
     <dependencyManagement>

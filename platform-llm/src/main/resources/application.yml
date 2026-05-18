@@ -1,3 +1,9 @@
+embedding:
+  provider: openai
+  model-name: text-embedding-3-small
+  openai:
+    api-key: ${OPENAI_API_KEY:}
+
 llm:
   provider: ollama
   ollama:

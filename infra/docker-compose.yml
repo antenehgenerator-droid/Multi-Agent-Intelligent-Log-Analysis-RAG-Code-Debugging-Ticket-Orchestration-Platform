@@ -61,5 +61,23 @@ services:
     ports:
       - "8081:8080"
 
+  embedding-worker:
+    build:
+      context: ..
+      dockerfile: service-embedding-worker/Dockerfile
+    ports:
+      - "8060:8060"
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/logintel
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATA_REDIS_HOST: redis
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
 volumes:
   pgdata:
