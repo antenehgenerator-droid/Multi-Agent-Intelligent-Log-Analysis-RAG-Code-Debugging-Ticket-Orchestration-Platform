@@ -21,24 +21,19 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     listener:
+      type: batch
       ack-mode: manual_immediate
     consumer:
       group-id: embedding-worker-group
+      max-poll-records: 32
+      enable-auto-commit: false
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      properties:
-        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        spring.json.trusted.packages: "com.platform.*"
-        spring.json.value.default.type: "com.platform.queue.model.KafkaEnvelope"
 
 embedding:
   provider: openai
   model-name: text-embedding-3-small
   openai:
     api-key: ${OPENAI_API_KEY:}
-  consumer:
-    max-poll-records: 32
 
 management:
   endpoints:

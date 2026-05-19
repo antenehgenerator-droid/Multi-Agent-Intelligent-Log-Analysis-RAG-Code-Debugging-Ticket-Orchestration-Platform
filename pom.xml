@@ -21,6 +21,7 @@
         <module>service-orchestrator</module>
         <module>service-api</module>
         <module>platform-llm</module>
+        <module>platform-rag</module>
         <module>platform-it</module>
         <module>platform-queue</module>
         <module>platform-load-tests</module>
@@ -56,6 +57,11 @@
             <dependency>
                 <groupId>com.yourproject</groupId>
                 <artifactId>platform-queue</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yourproject</groupId>
+                <artifactId>platform-rag</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

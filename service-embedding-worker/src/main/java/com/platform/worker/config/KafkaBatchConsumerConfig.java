@@ -1,6 +1,6 @@
-package com.platform.embedding.config;
+package com.platform.worker.config;
 
-import com.platform.queue.model.KafkaEnvelope;
+import com.platform.worker.model.EmbedRequest;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -20,25 +20,25 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 public class KafkaBatchConsumerConfig {
 
   @Bean
-  public ConsumerFactory<String, KafkaEnvelope<?>> embedRequestConsumerFactory(
+  public ConsumerFactory<String, EmbedRequest> embedRequestConsumerFactory(
       KafkaProperties kafkaProperties,
-      @Value("${embedding.consumer.max-poll-records:32}") int maxPollRecords) {
+      @Value("${spring.kafka.consumer.max-poll-records:32}") int maxPollRecords) {
     Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties(null));
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
     props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "com.platform.*");
-    props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, KafkaEnvelope.class.getName());
-    props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, true);
+    props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, EmbedRequest.class.getName());
+    props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
     props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, maxPollRecords);
+    props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
     return new DefaultKafkaConsumerFactory<>(props);
   }
 
-  @Bean(name = "embedBatchKafkaListenerContainerFactory")
-  public ConcurrentKafkaListenerContainerFactory<String, KafkaEnvelope<?>>
-      embedBatchKafkaListenerContainerFactory(
-          ConsumerFactory<String, KafkaEnvelope<?>> embedRequestConsumerFactory) {
-    ConcurrentKafkaListenerContainerFactory<String, KafkaEnvelope<?>> factory =
+  @Bean(name = "kafkaListenerContainerFactory")
+  public ConcurrentKafkaListenerContainerFactory<String, EmbedRequest>
+      kafkaListenerContainerFactory(ConsumerFactory<String, EmbedRequest> embedRequestConsumerFactory) {
+    ConcurrentKafkaListenerContainerFactory<String, EmbedRequest> factory =
         new ConcurrentKafkaListenerContainerFactory<>();
     factory.setConsumerFactory(embedRequestConsumerFactory);
     factory.setBatchListener(true);

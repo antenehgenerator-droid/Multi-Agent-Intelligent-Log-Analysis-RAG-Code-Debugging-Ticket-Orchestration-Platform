@@ -1,29 +1,17 @@
-package com.platform.llm.config;
+package com.platform.rag.config;
 
-import com.platform.llm.embedding.FakeEmbeddingModel;
+import com.platform.rag.embedding.FakeEmbeddingModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-public class EmbeddingConfig {
-
-  @Bean
-  public RedisTemplate<String, Object> embeddingRedisTemplate(RedisConnectionFactory connectionFactory) {
-    RedisTemplate<String, Object> template = new RedisTemplate<>();
-    template.setConnectionFactory(connectionFactory);
-    template.setKeySerializer(new StringRedisSerializer());
-    template.setValueSerializer(new JdkSerializationRedisSerializer());
-    template.afterPropertiesSet();
-    return template;
-  }
+@ComponentScan(basePackages = "com.platform.rag")
+public class RagAutoConfiguration {
 
   @Bean
   @ConditionalOnProperty(name = "embedding.provider", havingValue = "openai", matchIfMissing = true)

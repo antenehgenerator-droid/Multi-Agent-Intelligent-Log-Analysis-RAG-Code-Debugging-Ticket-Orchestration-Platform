@@ -1,14 +1,12 @@
-package com.platform.embedding;
+package com.platform.worker;
 
-import com.platform.llm.config.EmbeddingConfig;
+import com.platform.rag.config.RagAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 
-@SpringBootApplication
-@Import(EmbeddingConfig.class)
-@ComponentScan(basePackages = {"com.platform.embedding", "com.platform.llm.embedding", "com.platform.persistence"})
+@SpringBootApplication(scanBasePackages = "com.platform.worker")
+@Import(RagAutoConfiguration.class)
 public class EmbeddingWorkerApplication {
 
   public static void main(String[] args) {
