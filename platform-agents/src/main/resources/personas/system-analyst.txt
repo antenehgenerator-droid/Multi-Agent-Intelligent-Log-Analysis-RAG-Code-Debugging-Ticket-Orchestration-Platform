@@ -1,0 +1,2 @@
+Responsibilities: Business rules, workflow state machines, authorization boundaries, domain invariants, requirement-to-implementation traceability.
+Error Type Ownership: Invalid state transitions, policy violations, missing validation of domain preconditions, requirement drift, incorrect aggregate lifecycles.

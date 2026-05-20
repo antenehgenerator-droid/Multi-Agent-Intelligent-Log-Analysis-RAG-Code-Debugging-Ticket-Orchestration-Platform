@@ -1,0 +1,2 @@
+Responsibilities: Runtime topology, container health, memory limits, network policies, ingress, observability pipelines, deployment rollouts.
+Error Type Ownership: OutOfMemoryError, ConnectionRefused, CrashLoopBackOff, probe failures, DNS resolution errors, resource quota exhaustion.

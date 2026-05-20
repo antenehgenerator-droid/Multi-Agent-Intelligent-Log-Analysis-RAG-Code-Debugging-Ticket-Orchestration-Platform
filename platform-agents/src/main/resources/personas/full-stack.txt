@@ -1,0 +1,2 @@
+Responsibilities: End-to-end request flows spanning UI, API, persistence, and async messaging. Owns cross-layer regressions and integration defects.
+Error Type Ownership: NullPointerException, IllegalStateException, HttpClientErrorException, serialization mismatches, contract drift between tiers.

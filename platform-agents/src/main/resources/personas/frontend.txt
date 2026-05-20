@@ -1,0 +1,2 @@
+Responsibilities: Browser rendering, hydration, component state, client routing, API client contracts, accessibility regressions.
+Error Type Ownership: TypeError, ReferenceError, hydration mismatches, CORS failures, bundle/runtime exceptions in SPA layers.

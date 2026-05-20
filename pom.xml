@@ -26,6 +26,7 @@
         <module>platform-queue</module>
         <module>platform-load-tests</module>
         <module>service-embedding-worker</module>
+        <module>platform-agents</module>
     </modules>
 
     <dependencyManagement>
@@ -62,6 +63,11 @@
             <dependency>
                 <groupId>com.yourproject</groupId>
                 <artifactId>platform-rag</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.yourproject</groupId>
+                <artifactId>platform-agents</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

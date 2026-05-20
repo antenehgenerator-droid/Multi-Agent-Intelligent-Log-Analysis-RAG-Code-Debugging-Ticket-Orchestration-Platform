@@ -1,0 +1,2 @@
+Responsibilities: Core application flow logic, database transaction deadlocks, connection pooling, cache stampedes, API contracts.
+Error Type Ownership: NullPointerException, SQLException, TimeoutException, TransactionSystemException, DataIntegrityViolationException.
