@@ -10,6 +10,15 @@ Version **v0.3.0** runs five domain-specialized persona agents in parallel (CHEA
 [Incident] ───┼──> FrontendPersonaAgent (CHEAP) ─┼──> [ConsensusNegotiation] ──> [RootCause]
               ├──> FullStackPersonaAgent (CHEAP) ─┤      (MID tier)
               └──> SystemAnalystAgent (CHEAP) ────┘
+                                    │
+                                    ▼
+                         [RootCauseAgent] (LARGE)
+                                    │
+                                    ▼
+                      [TicketGeneratorAgent] (SMALL)
+                                    │
+                                    ▼
+                          [PriorityAgent] (hybrid)
 ```
 
 ### Baseline evaluation metrics (regression gate)

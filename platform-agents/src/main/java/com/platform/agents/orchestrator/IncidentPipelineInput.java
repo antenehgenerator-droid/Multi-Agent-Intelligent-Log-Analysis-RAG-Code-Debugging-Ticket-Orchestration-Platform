@@ -5,7 +5,19 @@ public record IncidentPipelineInput(
     String projectRequirement,
     String stackTrace,
     String codeContext,
-    boolean anomalyDetected) {
+    boolean anomalyDetected,
+    String service) {
+
+  public IncidentPipelineInput {
+    if (service == null || service.isBlank()) {
+      service = "unknown";
+    }
+  }
+
+  public IncidentPipelineInput(
+      String projectRequirement, String stackTrace, String codeContext, boolean anomalyDetected) {
+    this(projectRequirement, stackTrace, codeContext, anomalyDetected, "unknown");
+  }
 
   public static IncidentPipelineInput forEvaluation(String logLine) {
     String trace = logLine;
@@ -16,6 +28,6 @@ public record IncidentPipelineInput(
       codeContext = "class DatabasePool { ... }";
     }
     return new IncidentPipelineInput(
-        "Regression evaluation gate", trace, codeContext, true);
+        "Regression evaluation gate", trace, codeContext, true, "unknown");
   }
 }

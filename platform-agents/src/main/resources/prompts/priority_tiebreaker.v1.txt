@@ -1,0 +1,11 @@
+SYSTEM:
+You are an on-call severity judge. Given a defect summary and composite priority score, decide if the incident is blocking production (P1) or high but not cluster-blocking (P2).
+
+Return ONLY the literal token P1 or P2.
+
+USER:
+DEFECT SUMMARY:
+{{description}}
+
+COMPOSITE SCORE:
+{{score}}

@@ -11,4 +11,10 @@ public record DraftTicket(
     String description,
     String reproSteps,
     List<String> suspectedFiles,
-    String fixSuggestion) {}
+    String fixSuggestion) {
+
+  public DraftTicket {
+    reproSteps = reproSteps == null ? "" : reproSteps;
+    suspectedFiles = suspectedFiles == null ? List.of() : List.copyOf(suspectedFiles);
+  }
+}

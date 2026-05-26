@@ -9,6 +9,9 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.platform.agents.config.AgentsAutoConfiguration;
+import com.platform.agents.llm.PriorityLlmClient;
+import com.platform.agents.llm.RootCauseLlmClient;
+import com.platform.agents.llm.TicketGeneratorLlmClient;
 import com.platform.agents.negotiation.NegotiationLlmClient;
 import com.platform.agents.orchestrator.AgentsOrchestratorService;
 import com.platform.agents.orchestrator.IncidentPipelineInput;
@@ -145,6 +148,71 @@ class EvalRunner {
                 return negotiatedJson("REVIEW_NEEDED", "REVIEW_NEEDED", List.of(), 0.3);
               });
       return client;
+    }
+
+    @Bean
+    @Primary
+    RootCauseLlmClient evalRootCauseLlmClient() {
+      RootCauseLlmClient client = mock(RootCauseLlmClient.class);
+      when(client.chat(anyString(), eq("RootCauseAgent")))
+          .thenAnswer(
+              inv -> {
+                String prompt = inv.getArgument(0);
+                if (prompt.contains("PaymentService") || prompt.contains("NullPointerException")) {
+                  return rootCauseJson(
+                      "Null pointer in payment path", List.of("PaymentService.java"), 0.9);
+                }
+                if (prompt.contains("DatabasePool") || prompt.contains("SQLException")) {
+                  return rootCauseJson(
+                      "Connection pool exhausted", List.of("DatabasePool.java"), 0.9);
+                }
+                return rootCauseJson("Unknown", List.of(), 0.5);
+              });
+      return client;
+    }
+
+    @Bean
+    @Primary
+    TicketGeneratorLlmClient evalTicketGeneratorLlmClient() {
+      TicketGeneratorLlmClient client = mock(TicketGeneratorLlmClient.class);
+      when(client.chat(anyString(), eq("TicketGeneratorAgent")))
+          .thenAnswer(
+              inv -> {
+                String prompt = inv.getArgument(0);
+                if (prompt.contains("payment") || prompt.contains("Null")) {
+                  return ticketJson(
+                      "Payment NPE",
+                      List.of("PaymentService.java"),
+                      "## Root Cause Analysis\\nNPE\\n\\n## Minority Dissent Summary\\nNone\\n\\n## Suspected Files\\nPaymentService.java\\n\\n## Suggested Fix\\nGuard null");
+                }
+                return ticketJson(
+                    "DB pool",
+                    List.of("DatabasePool.java"),
+                    "## Root Cause Analysis\\nPool exhausted\\n\\n## Minority Dissent Summary\\nNone\\n\\n## Suspected Files\\nDatabasePool.java\\n\\n## Suggested Fix\\nScale pool");
+              });
+      return client;
+    }
+
+    @Bean
+    @Primary
+    PriorityLlmClient evalPriorityLlmClient() {
+      PriorityLlmClient client = mock(PriorityLlmClient.class);
+      when(client.chat(anyString(), eq("PriorityTiebreaker"))).thenReturn("P1");
+      return client;
+    }
+
+    private static String rootCauseJson(String cause, List<String> evidence, double confidence) {
+      return """
+          {"cause":"%s","evidence":%s,"confidence":%s,"alternatives":[]}
+          """
+          .formatted(cause, toJsonArray(evidence), confidence);
+    }
+
+    private static String ticketJson(String title, List<String> files, String description) {
+      return """
+          {"title":"%s","description":"%s","suspectedFiles":%s,"fixSuggestion":"Investigate"}
+          """
+          .formatted(title, description, toJsonArray(files));
     }
 
     private static String personaJson(

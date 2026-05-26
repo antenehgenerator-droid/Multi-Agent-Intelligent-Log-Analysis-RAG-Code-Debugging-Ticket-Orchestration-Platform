@@ -17,4 +17,8 @@ public record TicketResult(Status status, UUID linkedIncidentId, String external
   public static TicketResult duplicate(UUID incidentId) {
     return new TicketResult(Status.DEDUPLICATED, incidentId, null);
   }
+
+  public static TicketResult fromPrioritized(PrioritizedTicket ticket, UUID pipelineId) {
+    return new TicketResult(Status.TICKETED, pipelineId, null);
+  }
 }
