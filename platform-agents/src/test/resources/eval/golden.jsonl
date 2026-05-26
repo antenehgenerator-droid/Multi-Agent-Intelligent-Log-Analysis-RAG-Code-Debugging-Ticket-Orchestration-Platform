@@ -1,0 +1,2 @@
+{"log": "NullPointerException at PaymentService line 42", "expected_files": ["PaymentService.java"], "expected_layer": "APPLICATION", "error_type": "NullPointerException", "severity": "P1"}
+{"log": "SQLException: Connection pool exhausted", "expected_files": ["DatabasePool.java"], "expected_layer": "INFRASTRUCTURE", "error_type": "SQLException", "severity": "P0"}

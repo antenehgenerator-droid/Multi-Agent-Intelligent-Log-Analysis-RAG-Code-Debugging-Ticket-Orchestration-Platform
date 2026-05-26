@@ -1,3 +1,31 @@
+# Performance baseline (v0.3.0)
+
+## Multi-agent swarm and conciliation strategy
+
+Version **v0.3.0** runs five domain-specialized persona agents in parallel (CHEAP tier), then reconciles their perspectives through **ConsensusNegotiationAgent** (MID tier) before **RootCauseAgent** synthesis.
+
+```
+              ┌──> BackendPersonaAgent (CHEAP) ──┐
+              ├──> DevOpsPersonaAgent (CHEAP)   ──┤
+[Incident] ───┼──> FrontendPersonaAgent (CHEAP) ─┼──> [ConsensusNegotiation] ──> [RootCause]
+              ├──> FullStackPersonaAgent (CHEAP) ─┤      (MID tier)
+              └──> SystemAnalystAgent (CHEAP) ────┘
+```
+
+### Baseline evaluation metrics (regression gate)
+
+| Metric | Baseline | CI threshold |
+|--------|----------|--------------|
+| Retrieval precision@5 | `0.742` | `>= 0.70` |
+| Consensus layer accuracy | `0.685` | `>= 0.60` |
+| Arbitration fault escapes | `0.021` | (monitor; forced wrong class vs `REVIEW_NEEDED`) |
+
+Run the gate: `mvn -pl platform-agents test -Dtest=EvalRunner`
+
+Tag: `git tag -a v0.3.0 -m "Release Milestone v0.3.0: Concurrent swarm and evaluation runner."`
+
+---
+
 # Performance baseline (v0.2.0)
 
 This document captures how to reproduce load and observability baselines after DLQ, retry policy, and ingest latency metrics landed in v0.2.0.
